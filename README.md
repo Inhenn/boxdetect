@@ -19,4 +19,4 @@ box_crop(img, left_x1, left_x2, left_y1, left_y2, top_x1, top_x2, top_y1, top_y2
              bot_length, accuracy)
              
              
-![alt text](https://raw.githubusercontent.com/username/projectname/branch/path/to/sample.png)
+![as is shown in this picture](https://github.com/Inhenn/boxdetect/blob/master/sample.png)
