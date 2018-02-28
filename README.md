@@ -36,4 +36,4 @@ accuracy: the sensitivity of angle, the more sensitive of angle, the more accura
 
 Consider the picture above, detecting the edge of the top box helps we extract information from the area we wanted. In this case, selecting the top box area and using pytesseract to analyze the text work more efficiently than putting the entire image into pytesseract.
 
-This detection also works when the box is a little bit oblique, as long as 4 edges form a triangle, and the precise edge areas are provided.
+This detection also works when the box is a little bit oblique, as long as 4 edges form a rectangle, and the precise edge areas are provided.
