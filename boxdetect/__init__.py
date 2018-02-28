@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import math
 
+
 def cross_point(tuple1,tuple2):
     (x1, y1, x2, y2)=tuple1
     (x3, y3, x4, y4)=tuple2
@@ -14,6 +15,7 @@ def cross_point(tuple1,tuple2):
         return X
     except:
         return 0
+
 
 def cosine_formula(tuple1,tuple2):
     try:
@@ -46,10 +48,11 @@ def img_percent(img, x, height):
         return int(x * w)
 
 
-def edge_line(img, num_lines,base_w,base_h,linelength):
+def edge_line(img, num_lines,base_w,base_h,linelength,accuracy):
+
     line_list = []
     edges = cv2.Canny(img, 100, 200, apertureSize=3)
-    lines = cv2.HoughLines(edges, linelength, np.pi / 1440, 200)
+    lines = cv2.HoughLines(edges, linelength, np.pi / (accuracy*360), 200)
     for i in range(0, num_lines, 1):
         for rho, theta in lines[i]:
             a = np.cos(theta)
@@ -74,11 +77,11 @@ def image_selected(img, x1, x2, y1, y2):
     new_img = img[h1:h2, w1:w2]
     return new_img
 
+
 def frame(tuple1,tuple2,tuple3,tuple4,accuracy):
     if (perpendicular(tuple1, tuple2,accuracy)+perpendicular(tuple1, tuple3,accuracy)+perpendicular(tuple1, tuple4,accuracy)
         +perpendicular(tuple2, tuple3,accuracy)+perpendicular(tuple2, tuple4,accuracy)+perpendicular(tuple3, tuple4,accuracy)
         ==4):
-
 
         return (abs(cosine_formula(tuple1, tuple2) - 90)+abs(cosine_formula(tuple1, tuple3) - 90)+
                abs(cosine_formula(tuple1, tuple4) - 90)+abs(cosine_formula(tuple2, tuple3) - 90)+
@@ -86,37 +89,53 @@ def frame(tuple1,tuple2,tuple3,tuple4,accuracy):
     else:
         return 0
 
+
 def vector_percent(a,b,x):
     return (a+(b-a)*x)
 
-def box_vertex(img,left_x1,left_x2,left_y1,left_y2,top_x1,top_x2,top_y1,top_y2,right_x1,right_x2,right_y1,right_y2,bot_x1,bot_x2,bot_y1,bot_y2,line_num):
 
+def box_vertex(img, left_x1, left_x2, left_y1, left_y2, top_x1, top_x2, top_y1, top_y2, right_x1, right_x2, right_y1,
+             right_y2, bot_x1,
+             bot_x2, bot_y1, bot_y2, line_num=None, left_length=None, right_length=None, top_length=None,
+             bot_length=None, accuracy=None):
+    if line_num is None:
+        line_num = 5
+    if left_length is None:
+        left_length = 2
+    if right_length is None:
+        right_length = 2
+    if top_length is None:
+        top_length = 2
+    if bot_length is None:
+        bot_length = 2
+    if accuracy is None:
+        accuracy = 4
     # img = cv2.imread('image-10.png', 0)
-    (h,w)=img.shape
+    (h, w) = img.shape
 
-    img1=image_selected(img,left_x1,left_x2,left_y1,left_y2)
-    left=edge_line(img1,line_num,int(left_x1*w),int(left_y1*h),2)
+    img1 = image_selected(img, left_x1, left_x2, left_y1, left_y2)
+    left = edge_line(img1, line_num, int(left_x1 * w), int(left_y1 * h), left_length, accuracy)
     # for element in left:
     #
     #     cv2.line(img,(element[0],element[1]),(element[2],element[3]),(0,0,0),3)
 
-    img2=image_selected(img,top_x1,top_x2,top_y1,top_y2)
-    top=edge_line(img2,line_num,int(top_x1*w),int(top_y1*h),2)
+    img2 = image_selected(img, top_x1, top_x2, top_y1, top_y2)
+    top = edge_line(img2, line_num, int(top_x1 * w), int(top_y1 * h), right_length, accuracy)
     # for element in top:
     #
     #     cv2.line(img,(element[0],element[1]),(element[2],element[3]),(0,0,0),3)
 
-    img3=image_selected(img,bot_x1,bot_x2,bot_y1,bot_y2)
-    bot = edge_line(img3, line_num, int(bot_x1*w), int(bot_y1 * h), 2)
+    img3 = image_selected(img, bot_x1, bot_x2, bot_y1, bot_y2)
+    bot = edge_line(img3, line_num, int(bot_x1 * w), int(bot_y1 * h), top_length, accuracy)
     # for element in bot:
     #
     #     cv2.line(img, (element[0], element[1]), (element[2], element[3]), (0, 0, 0), 3)
 
     img4 = image_selected(img, right_x1, right_x2, right_y1, right_y2)
-    right = edge_line(img4, line_num, int(right_x1 * w), int(right_y1 * h), 2)
+    right = edge_line(img4, line_num, int(right_x1 * w), int(right_y1 * h), bot_length, accuracy)
     # for element in right:
     #
-    #      cv2.line(img, (element[0], element[1]), (element[2], element[3]), (0, 0, 0), 3)
+    # cv2.line(img, (element[0], element[1]), (element[2], element[3]), (0, 0, 0), 3)
     frame_list=[]
     accuracy_list=[]
     for t in top:
@@ -149,31 +168,43 @@ def box_vertex(img,left_x1,left_x2,left_y1,left_y2,top_x1,top_x2,top_y1,top_y2,r
         print("detection failed, please try more lines")
         return 0
 
-def box_draw(img,left_x1,left_x2,left_y1,left_y2,top_x1,top_x2,top_y1,top_y2,right_x1,right_x2,right_y1,right_y2,bot_x1,bot_x2,bot_y1,bot_y2,line_num):
-
+def box_draw(img,left_x1,left_x2,left_y1,left_y2,top_x1,top_x2,top_y1,top_y2,right_x1,right_x2,right_y1,right_y2,bot_x1,
+             bot_x2,bot_y1,bot_y2,line_num=None,left_length=None,right_length=None,top_length=None,bot_length=None,accuracy=None):
+    if line_num is None:
+        line_num=5
+    if left_length is None:
+        left_length=2
+    if right_length is None:
+        right_length=2
+    if top_length is None:
+        top_length = 2
+    if bot_length is None:
+        bot_length = 2
+    if accuracy is None:
+        accuracy = 4
     # img = cv2.imread('image-10.png', 0)
     (h,w)=img.shape
 
     img1=image_selected(img,left_x1,left_x2,left_y1,left_y2)
-    left=edge_line(img1,line_num,int(left_x1*w),int(left_y1*h),2)
+    left=edge_line(img1,line_num,int(left_x1*w),int(left_y1*h),left_length,accuracy)
     # for element in left:
     #
     #     cv2.line(img,(element[0],element[1]),(element[2],element[3]),(0,0,0),3)
 
     img2=image_selected(img,top_x1,top_x2,top_y1,top_y2)
-    top=edge_line(img2,line_num,int(top_x1*w),int(top_y1*h),2)
+    top=edge_line(img2,line_num,int(top_x1*w),int(top_y1*h),right_length ,accuracy)
     # for element in top:
     #
     #     cv2.line(img,(element[0],element[1]),(element[2],element[3]),(0,0,0),3)
 
     img3=image_selected(img,bot_x1,bot_x2,bot_y1,bot_y2)
-    bot = edge_line(img3, line_num, int(bot_x1*w), int(bot_y1 * h), 2)
+    bot = edge_line(img3, line_num, int(bot_x1*w), int(bot_y1 * h), top_length,accuracy)
     # for element in bot:
     #
     #     cv2.line(img, (element[0], element[1]), (element[2], element[3]), (0, 0, 0), 3)
 
     img4 = image_selected(img, right_x1, right_x2, right_y1, right_y2)
-    right = edge_line(img4, line_num, int(right_x1 * w), int(right_y1 * h), 2)
+    right = edge_line(img4, line_num, int(right_x1 * w), int(right_y1 * h), bot_length,accuracy)
     # for element in right:
     #
     #      cv2.line(img, (element[0], element[1]), (element[2], element[3]), (0, 0, 0), 3)
@@ -212,32 +243,45 @@ def box_draw(img,left_x1,left_x2,left_y1,left_y2,top_x1,top_x2,top_y1,top_y2,rig
         print("detection failed, please try more lines")
         return 0
 
-
-def box_crop(img,left_x1,left_x2,left_y1,left_y2,top_x1,top_x2,top_y1,top_y2,right_x1,right_x2,right_y1,right_y2,bot_x1,bot_x2,bot_y1,bot_y2,line_num):
-
+def box_crop(img, left_x1, left_x2, left_y1, left_y2, top_x1, top_x2, top_y1, top_y2, right_x1, right_x2, right_y1,
+             right_y2, bot_x1,
+             bot_x2, bot_y1, bot_y2, line_num=None, left_length=None, right_length=None, top_length=None,
+             bot_length=None, accuracy=None):
+    if line_num is None:
+        line_num = 5
+    if left_length is None:
+        left_length = 2
+    if right_length is None:
+        right_length = 2
+    if top_length is None:
+        top_length = 2
+    if bot_length is None:
+        bot_length = 2
+    if accuracy is None:
+        accuracy = 4
     # img = cv2.imread('image-10.png', 0)
-    (h,w)=img.shape
+    (h, w) = img.shape
 
-    img1=image_selected(img,left_x1,left_x2,left_y1,left_y2)
-    left=edge_line(img1,line_num,int(left_x1*w),int(left_y1*h),2)
+    img1 = image_selected(img, left_x1, left_x2, left_y1, left_y2)
+    left = edge_line(img1, line_num, int(left_x1 * w), int(left_y1 * h), left_length, accuracy)
     # for element in left:
     #
     #     cv2.line(img,(element[0],element[1]),(element[2],element[3]),(0,0,0),3)
 
-    img2=image_selected(img,top_x1,top_x2,top_y1,top_y2)
-    top=edge_line(img2,line_num,int(top_x1*w),int(top_y1*h),2)
+    img2 = image_selected(img, top_x1, top_x2, top_y1, top_y2)
+    top = edge_line(img2, line_num, int(top_x1 * w), int(top_y1 * h), right_length, accuracy)
     # for element in top:
     #
     #     cv2.line(img,(element[0],element[1]),(element[2],element[3]),(0,0,0),3)
 
-    img3=image_selected(img,bot_x1,bot_x2,bot_y1,bot_y2)
-    bot = edge_line(img3, line_num, int(bot_x1*w), int(bot_y1 * h), 2)
+    img3 = image_selected(img, bot_x1, bot_x2, bot_y1, bot_y2)
+    bot = edge_line(img3, line_num, int(bot_x1 * w), int(bot_y1 * h), top_length, accuracy)
     # for element in bot:
     #
     #     cv2.line(img, (element[0], element[1]), (element[2], element[3]), (0, 0, 0), 3)
 
     img4 = image_selected(img, right_x1, right_x2, right_y1, right_y2)
-    right = edge_line(img4, line_num, int(right_x1 * w), int(right_y1 * h), 2)
+    right = edge_line(img4, line_num, int(right_x1 * w), int(right_y1 * h), bot_length, accuracy)
     # for element in right:
     #
     #      cv2.line(img, (element[0], element[1]), (element[2], element[3]), (0, 0, 0), 3)
